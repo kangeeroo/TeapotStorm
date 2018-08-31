@@ -1,0 +1,86 @@
+<html>
+<head>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+<script language="Javascript">
+    $.getJSON('https://yourAPIid.execute-api.us-east-2.amazonaws.com/alpha/info', function (message) {
+        var bv = [];
+        var mv = [];
+        //console.log(message);
+        //console.log(JSON.parse(message.body));
+        JSON.parse(message.body).data.Items.forEach(function(item) {
+          bv.push([parseInt(item.timestamp.N), parseInt(item.payload.M.temperature.N)]);
+          //console.log(item.timestamp.N + " " + item.payload.M.temperature.N);
+        });
+        console.log(bv);
+
+        JSON.parse(message.body).data.Items.forEach(function(item) {
+          mv.push([parseInt(item.timestamp.N), parseInt(item.payload.M.humidity.N)]);
+          //console.log(item.timestamp.N + " " + item.payload.M.temperature.N);
+        });
+
+        Highcharts.setOptions({
+            global: {
+                useUTC: false
+            }
+        });
+
+        Highcharts.chart('container', {
+            chart: {
+                type: 'spline',
+                animation: Highcharts.svg, // don't animate in old IE
+                marginRight: 10,
+                events: {
+                    load: function () {
+                    }
+                }
+            },
+            title: {
+                text: 'Temperature Detected'
+            },
+            xAxis: {
+                type: 'datetime',
+                tickPixelInterval: 150
+            },
+            yAxis: {
+                title: {
+                    text: 'Temperature Value'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: { //this is for mouse hover on chart
+                formatter: function () {
+                    return '<b>' + this.series.name + '</b><br/>' +
+                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                        Highcharts.numberFormat(this.y, 2); //2nd arg means decimal precision
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            exporting: {
+                enabled: false
+            },
+
+            series: [{
+                name: 'Temperature',
+                data: bv
+            },{
+                 name: 'Humidity',
+                 data: mv
+            }]
+        });
+    });
+    setTimeout(function(){
+      location = ''
+    },10000);
+</script>
